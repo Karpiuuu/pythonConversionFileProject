@@ -1,13 +1,11 @@
 import sys
 import os
+from handlers import json
 
 SUPPORTED_EXTENSIONS = [".json", ".yaml", ".yml", ".xml"]
 
 def get_file_extension(file_path: str) -> str:
     return os.path.splitext(file_path)[1].lower()
-
-def is_supported_file(file_path: str) -> bool:
-    return get_file_extension(file_path) in SUPPORTED_EXTENSIONS
 
 def main():
     if len(sys.argv) != 3:
@@ -34,6 +32,12 @@ def main():
         sys.exit(1)
 
     print(f"Rozpoczynam konwersję z {input_ext} do {output_ext}...")
+
+    data = None
+    if input_ext == ".json":
+        data = json.load_json_file(input_file)
+        print("Plik JSON został poprawnie wczytany.")
+        print(f"Dane: {data}")
 
 if __name__ == "__main__":
     main()
