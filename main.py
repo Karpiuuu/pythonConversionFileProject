@@ -2,6 +2,8 @@ import sys
 import os
 from handlers import json
 from handlers import yaml
+from handlers import xml
+
 
 
 SUPPORTED_EXTENSIONS = [".json", ".yaml", ".yml", ".xml"]
@@ -46,6 +48,12 @@ def main():
     elif input_ext in [".yaml", ".yml"]:
         data = yaml.load_yaml_file(input_file)
         print("Plik YAML został poprawnie wczytany.")
+        print(f"Dane: {data}")
+    elif input_ext == ".xml":
+        data = xml.load_xml_file(input_file)
+        print("Plik XML został poprawnie wczytany.")
+        print(f"Dane: {data}")
+
 
 
     # OUTPUT HANDLING
