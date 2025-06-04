@@ -1,10 +1,49 @@
 import sys
+import os
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton,
     QFileDialog, QComboBox, QVBoxLayout, QMessageBox
 )
-import os
+from PyQt5.QtCore import QThread, pyqtSignal, QObject
+
 from handlers import json, yaml, xml
+
+
+class Worker(QObject):
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, input_path, output_path, input_ext, output_ext):
+        super().__init__()
+        self.input_path = input_path
+        self.output_path = output_path
+        self.input_ext = input_ext
+        self.output_ext = output_ext
+
+    def run(self):
+        try:
+            if self.input_ext == ".json":
+                data = json.load_json_file(self.input_path)
+            elif self.input_ext in [".yaml", ".yml"]:
+                data = yaml.load_yaml_file(self.input_path)
+            elif self.input_ext == ".xml":
+                data = xml.load_xml_file(self.input_path)
+            else:
+                self.error.emit(f"Nieobsługiwane rozszerzenie: {self.input_ext}")
+                return
+
+            if self.output_ext == ".json":
+                json.save_json_file(self.output_path, data)
+            elif self.output_ext in [".yaml", ".yml"]:
+                yaml.save_yaml_file(self.output_path, data)
+            elif self.output_ext == ".xml":
+                xml.save_xml_file(self.output_path, data)
+
+            self.finished.emit(self.output_path)
+
+        except Exception as e:
+            self.error.emit(str(e))
+
 
 class ConverterApp(QWidget):
     def __init__(self):
@@ -49,40 +88,32 @@ class ConverterApp(QWidget):
         output_ext = ".yaml" if output_ext == "yaml" else f".{output_ext}"
         self.output_path = self.input_path.replace(input_ext, f"_converted{output_ext}")
 
-        # Wczytywanie
-        try:
-            if input_ext == ".json":
-                data = json.load_json_file(self.input_path)
-            elif input_ext in [".yaml", ".yml"]:
-                data = yaml.load_yaml_file(self.input_path)
-            elif input_ext == ".xml":
-                data = xml.load_xml_file(self.input_path)
-            else:
-                QMessageBox.warning(self, "Błąd", f"Nieobsługiwane rozszerzenie: {input_ext}")
-                return
-        except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Nie udało się wczytać pliku: {e}")
-            return
+        self.thread = QThread()
+        self.worker = Worker(self.input_path, self.output_path, input_ext, output_ext)
+        self.worker.moveToThread(self.thread)
 
-        # Zapis
-        try:
-            if output_ext == ".json":
-                json.save_json_file(self.output_path, data)
-            elif output_ext in [".yaml", ".yml"]:
-                yaml.save_yaml_file(self.output_path, data)
-            elif output_ext == ".xml":
-                xml.save_xml_file(self.output_path, data)
-        except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Nie udało się zapisać pliku: {e}")
-            return
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.on_conversion_success)
+        self.worker.error.connect(self.on_conversion_error)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
 
-        QMessageBox.information(self, "Sukces", f"Zapisano plik: {self.output_path}")
+        self.thread.start()
+
+    def on_conversion_success(self, path):
+        QMessageBox.information(self, "Sukces", f"Zapisano plik: {path}")
+
+    def on_conversion_error(self, error_message):
+        QMessageBox.critical(self, "Błąd", error_message)
+
 
 def main():
     app = QApplication(sys.argv)
     window = ConverterApp()
     window.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
