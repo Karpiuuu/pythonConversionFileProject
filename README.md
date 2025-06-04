@@ -1,1 +1,1 @@
-init
+trigger
