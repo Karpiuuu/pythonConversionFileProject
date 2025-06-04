@@ -2,6 +2,7 @@ import sys
 import os
 from handlers import json
 
+
 SUPPORTED_EXTENSIONS = [".json", ".yaml", ".yml", ".xml"]
 
 def get_file_extension(file_path: str) -> str:
@@ -34,10 +35,19 @@ def main():
     print(f"Rozpoczynam konwersję z {input_ext} do {output_ext}...")
 
     data = None
+    
+    # INPUT HANDLING
+    
     if input_ext == ".json":
         data = json.load_json_file(input_file)
         print("Plik JSON został poprawnie wczytany.")
         print(f"Dane: {data}")
+
+    # OUTPUT HANDLING
+    if output_ext == ".json":
+        json.save_json_file(output_file, data)
+        print("Plik JSON został zapisany.")
+
 
 if __name__ == "__main__":
     main()
