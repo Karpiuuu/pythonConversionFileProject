@@ -52,6 +52,10 @@ def main():
     if output_ext == ".json":
         json.save_json_file(output_file, data)
         print("Plik JSON został zapisany.")
+    elif output_ext in [".yaml", ".yml"]:
+        yaml.save_yaml_file(output_file, data)
+        print("Plik YAML został zapisany.")
+
 
 
 if __name__ == "__main__":
