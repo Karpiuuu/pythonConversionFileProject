@@ -53,6 +53,9 @@ def main():
         data = xml.load_xml_file(input_file)
         print("Plik XML został poprawnie wczytany.")
         print(f"Dane: {data}")
+    else:
+        print(f"Błąd: Nieobsługiwane rozszerzenie pliku wejściowego: {input_ext}")
+        sys.exit(1)
 
 
 
@@ -63,6 +66,13 @@ def main():
     elif output_ext in [".yaml", ".yml"]:
         yaml.save_yaml_file(output_file, data)
         print("Plik YAML został zapisany.")
+    elif output_ext == ".xml":
+        xml.save_xml_file(output_file, data)
+        print("Plik XML został zapisany.")
+    else:
+        print(f"Błąd: Nieobsługiwane rozszerzenie pliku wyjściowego: {output_ext}")
+        sys.exit(1)
+
 
 
 
