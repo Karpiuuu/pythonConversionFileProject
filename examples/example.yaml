@@ -1,0 +1,8 @@
+product:
+  name: Laptop
+  price: 4999.99
+  available: true
+  features:
+    - SSD
+    - 16GB RAM
+    - Intel i7
